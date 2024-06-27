@@ -20,6 +20,7 @@ def load_process_data():
 #Feature Engineering
     data['Base Price']=int(input("enter Base Price"))
     data['Total Price']=int(input("Enter Total Price"))
+    data['Units Sold']=int(input("Enter units sold"))
     data['Discount'] =   data['Base Price'] - data['Total Price']
     data['Discount'] = np.round(data['Discount'] , 2)
 
