@@ -27,6 +27,7 @@ def load_process_data():
     data['Discount percentage'] = 100 * data['Discount'] / data['Base Price']
     data['Discount percentage'] = np.round(data['Discount percentage'] , 2)
     data['Demand'] = data.apply(classify_demand, axis=1)
+    
 
 
     data=data[(data['Discount']>=0)]
@@ -43,24 +44,35 @@ def load_process_data():
 
 
 def classify_demand(row):
-        data = pd.read_csv("https://raw.githubusercontent.com/amankharwal/Website-data/master/demand.csv")
-        
-        
-        data['Units Sold']=int(input("Enter units sold"))
+        if row['Discount'] > 20 and row['Units Sold'] > 20  :
+            return "High"
+        elif row['Discount'] > 10 and (row['Units Sold'] >= 10 and row['Units Sold'] <= 20):
+            return "Med"
+        elif row['Units Sold'] >= 50:
+            return "High"
+        elif row['Units Sold'] > 20 and row['Units Sold'] <50:
+            return "Med"
+        else:
+            return "Low"
+
+
+def classify(row):
         
         if row['Discount'] > 20 and row['Units Sold'] > 20  :
-            print( "High")
+            print("High")
+            
         elif row['Discount'] > 10 and (row['Units Sold'] >= 10 and row['Units Sold'] <= 20):
             print("Med")
+            
         elif row['Units Sold'] >= 50:
-            print("High")
+            print( "High")
+            
         elif row['Units Sold'] > 20 and row['Units Sold'] <50:
             print("Med")
+            
         else:
-            print("Low")
-
-
-
+            print( "Low")
+            
 def split_train_data(data):
 
     #Data Splitting
@@ -70,7 +82,7 @@ def split_train_data(data):
 
     x_train , x_test , y_train , y_test = train_test_split(x , y , test_size = 0.8 ,random_state=42)
 
-    #Initialize Decission Tree Regression
+    #Initialize Decision Tree Regression
 
     model = DecisionTreeRegressor(random_state = 42)
 
@@ -96,3 +108,9 @@ def split_train_data(data):
 if __name__ == "__main__":
     data = load_process_data()
     split_train_data(data)
+    data['Units Sold']=int(input("Enter Units sold:"))
+    
+    for i in range(2,0,-1):
+        data['Demand'] = data.apply(classify, axis=1)
+
+    
