@@ -20,26 +20,12 @@ def load_process_data():
 #Feature Engineering
     data['Base Price']=int(input("enter Base Price"))
     data['Total Price']=int(input("Enter Total Price"))
-    data['Units Sold']=int(input("Enter units sold"))
+    #data['Units Sold']=int(input("Enter units sold"))
     data['Discount'] =   data['Base Price'] - data['Total Price']
     data['Discount'] = np.round(data['Discount'] , 2)
 
     data['Discount percentage'] = 100 * data['Discount'] / data['Base Price']
     data['Discount percentage'] = np.round(data['Discount percentage'] , 2)
-
-
-    def classify_demand(row):
-        if row['Discount'] > 20 and row['Units Sold'] > 20  :
-            return "High"
-        elif row['Discount'] > 10 and (row['Units Sold'] >= 10 and row['Units Sold'] <= 20):
-            return "Med"
-        elif row['Units Sold'] >= 50:
-            return "High"
-        elif row['Units Sold'] > 20 and row['Units Sold'] <50:
-            return "Med"
-        else:
-            return "Low"
-
     data['Demand'] = data.apply(classify_demand, axis=1)
 
 
@@ -55,10 +41,30 @@ def load_process_data():
 
     return data
 
+
+def classify_demand(row):
+        data = pd.read_csv("https://raw.githubusercontent.com/amankharwal/Website-data/master/demand.csv")
+        
+        
+        data['Units Sold']=int(input("Enter units sold"))
+        
+        if row['Discount'] > 20 and row['Units Sold'] > 20  :
+            print( "High")
+        elif row['Discount'] > 10 and (row['Units Sold'] >= 10 and row['Units Sold'] <= 20):
+            print("Med")
+        elif row['Units Sold'] >= 50:
+            print("High")
+        elif row['Units Sold'] > 20 and row['Units Sold'] <50:
+            print("Med")
+        else:
+            print("Low")
+
+
+
 def split_train_data(data):
 
     #Data Splitting
-
+    
     x = data.drop(columns=['Demand'])
     y = data['Demand']
 
