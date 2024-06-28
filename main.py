@@ -9,8 +9,12 @@ from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
 from sklearn import tree
 
+import warnings
+import pickle
 
 global data
+
+warnings.filterwarnings("ignore")
 
 def load_process_data():
     #Loading Dataset
@@ -54,22 +58,7 @@ def classify_demand(row):
             return "Low"
 
 
-def classify(row):
-        
-        if row['Discount'] > 20 and row['Units Sold'] > 20  :
-            print("High")
-            
-        elif row['Discount'] > 10 and (row['Units Sold'] >= 10 and row['Units Sold'] <= 20):
-            print("Med")
-            
-        elif row['Units Sold'] >= 50:
-            print( "High")
-            
-        elif row['Units Sold'] > 20 and row['Units Sold'] <50:
-            print("Med")
-            
-        else:
-            print( "Low")
+
             
 def split_train_data(data):
 
@@ -82,11 +71,16 @@ def split_train_data(data):
 
     #Initialize Decision Tree Regression
 
-    model = DecisionTreeRegressor(random_state = 42)
+    Dec_Reg = DecisionTreeRegressor(random_state = 42)
 
     #Train the model
 
-    model.fit(x_train , y_train)
+    Dec_Reg.fit(x_train , y_train)
+
+    #Dump into pickle file
+
+    pickle.dump(Dec_Reg ,open('Content.pkl' , 'wb'))
+    model = pickle.load(open('Content.pkl','rb'))
 
     #Predict on Test
 
