@@ -17,10 +17,8 @@ def load_process_data():
     data = pd.read_csv("https://raw.githubusercontent.com/amankharwal/Website-data/master/demand.csv")
 
 
-#Feature Engineering
-    data['Base Price']=int(input("enter Base Price"))
-    data['Total Price']=int(input("Enter Total Price"))
-    #data['Units Sold']=int(input("Enter units sold"))
+    #Feature Engineering
+
     data['Discount'] =   data['Base Price'] - data['Total Price']
     data['Discount'] = np.round(data['Discount'] , 2)
 
@@ -102,15 +100,53 @@ def split_train_data(data):
     print(f"Mean Squared Error : {mse}")
     print(f"R^2 Error : {r2}")
 
-    tree.plot_tree(model)
+    tree.plot_tree(model , filled=True , rounded=True )
     plt.show()
+
+    return model
+
+    
+
+def input_features():
+     
+    #User Input
+    base_price = float(input("Enter Base Price: "))
+    total_price = float(input("Enter Total Price: "))
+    units_sold = int(input("Enter Units Sold: "))
+
+
+    
+    discount = base_price - total_price
+    discount_percentage = 100 * discount / base_price
+    
+    return pd.DataFrame({
+        'ID' : [0],
+        'Store ID': [0] ,
+        'Total Price': [total_price],
+        'Base Price': [base_price],
+        'Units Sold': [units_sold],
+        'Discount': [np.round(discount, 2)],
+        'Discount percentage': [np.round(discount_percentage, 2)] 
+       
+        })
+
 
 if __name__ == "__main__":
     data = load_process_data()
-    split_train_data(data)
-    data['Units Sold']=int(input("Enter Units sold:"))
+    model = split_train_data(data)
     
-    for i in range(2,0,-1):
-        data['Demand'] = data.apply(classify, axis=1)
+    new_data = input_features()
+    prediction = model.predict(new_data)
+    
+    # Print the prediction
+    if prediction == 2:
+        print("Demand for the product is High")
+    elif prediction == 1:
+        print("Demand for the Product is Average")
+    else:
+        print("Demand for the product is Low")
 
-    
+    # Visualize the tree
+    plt.figure(figsize=(20, 10))
+    tree.plot_tree(model, feature_names=data.drop(columns=['Demand']).columns, filled=True, fontsize=10)
+    plt.show()
