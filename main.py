@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import mean_squared_error
-from sklearn.metrics import r2_score
+from sklearn.metrics import r2_score , accuracy_score
 from sklearn import tree
 
 import warnings
@@ -46,17 +46,18 @@ def load_process_data():
 
 
 def classify_demand(row):
-        if row['Discount'] > 20 and row['Units Sold'] > 20  :
-            return "High"
-        elif row['Discount'] > 10 and (row['Units Sold'] >= 10 and row['Units Sold'] <= 20):
-            return "Med"
-        elif row['Units Sold'] >= 50:
-            return "High"
-        elif row['Units Sold'] > 20 and row['Units Sold'] <50:
-            return "Med"
-        else:
-            return "Low"
-
+    if row['Units Sold'] >= 50:
+        return "High"
+    elif row['Discount'] > 20 and row['Units Sold'] > 20:
+        return "High"
+    elif row['Discount'] > 10 and (row['Units Sold'] >= 10 and row['Units Sold'] <= 20):
+        return "Med"
+    elif row['Units Sold'] > 20 and row['Units Sold'] < 50:
+        return "Med"
+    elif row['Discount']<10 and row['Units Sold']<10:
+        return "Low"
+    else:
+        return "High"
 
 
             
@@ -67,35 +68,46 @@ def split_train_data(data):
     x = data.drop(columns=['Demand'])
     y = data['Demand']
 
-    x_train , x_test , y_train , y_test = train_test_split(x , y , test_size = 0.8 ,random_state=42)
+    x_train , x_test , y_train , y_test = train_test_split(x , y , test_size = 0.7 ,random_state=42)
 
     #Initialize Decision Tree Regression
 
-    Dec_Reg = DecisionTreeRegressor(random_state = 42)
+    model = DecisionTreeRegressor(random_state = 42 , ccp_alpha=0.02)
 
     #Train the model
 
-    Dec_Reg.fit(x_train , y_train)
+    model.fit(x_train , y_train)
 
     #Dump into pickle file
 
-    pickle.dump(Dec_Reg ,open('Content.pkl' , 'wb'))
-    model = pickle.load(open('Content.pkl','rb'))
+   # pickle.dump(model ,open('Content.pkl' , 'wb'))
+    #model = pickle.load(open('Content.pkl','rb'))
+
+    #ccp_alpha 
+    #path = model.cost_complexity_pruning_path(x_train, y_train)
+    #ccp_alphas, impurities = path.ccp_alphas, path.impurities
 
     #Predict on Test
 
     y_pred = model.predict(x_test)
+    y_pred_train = model.predict(x_train)
+
 
     #Metrics
 
     mse = mean_squared_error(y_test , y_pred)
     r2 = r2_score(y_test , y_pred)
+    acc = accuracy_score(y_test , y_pred)
+    train_accuracy = accuracy_score(y_train, y_pred_train)
+
 
     print(f"Mean Squared Error : {mse}")
     print(f"R^2 Error : {r2}")
+    print(f"Test Accuracy : {acc}")
+    print(f"Train Accuracy: {train_accuracy}")
 
-    tree.plot_tree(model , filled=True , rounded=True )
-    plt.show()
+
+
 
     return model
 
@@ -137,7 +149,7 @@ if __name__ == "__main__":
         print("Demand for the product is High")
     elif prediction == 1:
         print("Demand for the Product is Average")
-    else:
+    elif prediction == 0:
         print("Demand for the product is Low")
 
     # Visualize the tree
