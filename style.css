@@ -14,13 +14,14 @@ body {
 
 .second {
     margin-top: 2rem;
-    margin-left: 17rem;
+    margin-left: 19rem;
+    padding-bottom: 3.5rem;
+    margin-bottom: 3rem;
     display: flex;
     justify-content: center;
     align-items: center;
     max-width: 600px;
     background-color: rgb(138, 127, 127);
-    padding: 5px;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
@@ -36,7 +37,7 @@ body {
 
 .form-group {
     padding: 1rem;
-    flex: 1 1 50%; 
+    flex: 1 1 50%;
     margin-right: 5px;
     margin-bottom: 5px;
 }
@@ -61,13 +62,13 @@ button {
     margin-top: 1rem;
     justify-content: center;
     align-items: center;
-    background-color: #4CAF50; 
-    color: white; 
-    padding: 10px 20px; 
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
     border: none;
     cursor: pointer;
-    font-size: 1.2rem; 
-    border-radius: 4px; 
+    font-size: 1.2rem;
+    border-radius: 4px;
 }
 
 button:hover {

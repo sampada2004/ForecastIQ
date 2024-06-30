@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ForecastIQ</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="first">
+        <h1>ForecastIQ</h1>
+    </div>
+    <div class="second">
+        <form class="form" id="prediction-form">
+            <div class="form-group">
+                <label for="total-price">Total Price:</label>
+                <input type="text" id="total-price" name="total-price" style="background-color: black;color:white;height:3rem;font-size:1.5rem">
+            </div>
+            <div class="form-group">
+                <label for="base-price">Base Price:</label>
+                <input type="text" id="base-price" name="base-price" style="background-color: black;color:white;height:3rem;font-size:1.5rem">
+            </div>
+            <div>
+                <button type="submit">Predict</button>
+            </div>
+        </form>
+        <div id="result" style="text-align: center; margin-top: 20px; font-size: 1.5rem;"></div>
+    </div>
+    <script>
+        document.getElementById('prediction-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const total_price = document.getElementById('total-price').value;
+            const base_price = document.getElementById('base-price').value;
+
+            fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `total-price=${total_price}&base-price=${base_price}`,
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').innerText = `Predicted Units Sold: ${data.prediction}`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>
