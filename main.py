@@ -1,146 +1,114 @@
-import pandas as pd
+'''import pandas as pd 
 import numpy as np
+import seaborn as sns
+import plotly.express as px
 import matplotlib.pyplot as plt
-
 from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import mean_squared_error
+from sklearn.tree import DecisionTreeRegressor, plot_tree  # Importing plot_tree for decision tree visualization
+from sklearn.metrics import r2_score  # Importing R^2 score calculation
+
+# Load data
+data = pd.read_csv("https://raw.githubusercontent.com/amankharwal/Website-data/master/demand.csv")
+data = data.dropna()
+
+# Plotting scatter plot using Plotly Express
+fig = px.scatter(data, x="Units Sold", y="Total Price", size="Units Sold")
+fig.show()
+
+# Prepare data for modeling
+x = data[["Total Price", "Base Price"]]
+y = data["Units Sold"]
+
+# Split data into training and testing sets
+xtrain, xtest, ytrain, ytest = train_test_split(x, y, test_size=0.2, random_state=42)
+
+# Initialize Decision Tree Regressor model with max_depth=3 (smaller tree for readability)
+model = DecisionTreeRegressor(max_depth=3)
+
+# Train the model
+model.fit(xtrain, ytrain)
+
+# Make predictions on a new data point (features)
+features = np.array([[133.00, 140.00]])
+print("Predicted Units Sold:", model.predict(features))
+
+# Predict on test data
+ypred = model.predict(xtest)
+
+# Calculate R^2 score on test data
+r2 = r2_score(ytest, ypred)
+print("R^2 Score on test data:", r2)
+
+# Plot decision tree
+plt.figure(figsize=(12, 8))
+plot_tree(model, filled=True, feature_names=["Total Price", "Base Price"], rounded=True)
+plt.title("Decision Tree Regression (Max Depth = 3)")
+plt.show()
+'''
+import pandas as pd 
+import numpy as np
+import seaborn as sns
+import plotly.express as px
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.tree import DecisionTreeRegressor, plot_tree
 from sklearn.metrics import r2_score
-from sklearn import tree
 
-import warnings
-import pickle
+# Load data
+data = pd.read_csv("https://raw.githubusercontent.com/amankharwal/Website-data/master/demand.csv")
+data = data.dropna()
 
-global data
+# Plotting scatter plot using Plotly Express
+fig = px.scatter(data, x="Units Sold", y="Total Price", size="Units Sold")
+fig.show()
 
-warnings.filterwarnings("ignore")
+# Prepare data for modeling
+x = data[["Total Price", "Base Price"]]
+y = data["Units Sold"]
 
-def load_process_data():
-    #Loading Dataset
-    data = pd.read_csv("https://raw.githubusercontent.com/amankharwal/Website-data/master/demand.csv")
+# Split data into training and testing sets
+xtrain, xtest, ytrain, ytest = train_test_split(x, y, test_size=0.2, random_state=42)
 
+# Initialize Decision Tree Regressor model
+model = DecisionTreeRegressor(max_depth=3,random_state=42)
 
-    #Feature Engineering
+# Hyperparameter tuning using GridSearchCV
+param_grid = {
+    'max_depth': [None, 5, 10, 15],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 4]
+}
 
-    data['Discount'] =   data['Base Price'] - data['Total Price']
-    data['Discount'] = np.round(data['Discount'] , 2)
+grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=5, scoring='r2', verbose=1)
+grid_search.fit(xtrain, ytrain)
 
-    data['Discount percentage'] = 100 * data['Discount'] / data['Base Price']
-    data['Discount percentage'] = np.round(data['Discount percentage'] , 2)
-    data['Demand'] = data.apply(classify_demand, axis=1)
-    
+print("Best parameters found by GridSearchCV:")
+print(grid_search.best_params_)
 
+# Use the best model found by GridSearchCV
+best_model = grid_search.best_estimator_
+model.fit(xtrain, ytrain)
+# Function to predict Units Sold based on user input
+def predict_units_sold(total_price, base_price):
+    features = np.array([[total_price, base_price]])
+    predicted_units_sold = best_model.predict(features)[0]  #best_model instead of model
+    return predicted_units_sold
 
-    data=data[(data['Discount']>=0)]
-    print()
+# Example usage:
+total_price_input = float(input("Enter Total Price: "))
+base_price_input = float(input("Enter Base Price: "))
 
-    # Handle missing values if any
-    data.fillna(method='ffill', inplace=True)
+predicted_units = predict_units_sold(total_price_input, base_price_input)
+print("Predicted Units Sold:", int(round(predicted_units)))
+plt.figure(figsize=(15, 10))
+plot_tree(model, filled=True, feature_names=["Total Price", "Base Price"], rounded=True)
+plt.title("Decision Tree Regressor")
+plt.show()
+# Predict on test data
+ypred = best_model.predict(xtest) #best_model instead of model
 
-    # Encode categorical target variable
-    le = LabelEncoder()
-    data['Demand'] = le.fit_transform(data['Demand'])
-
-    return data
-
-
-def classify_demand(row):
-        if row['Discount'] > 20 and row['Units Sold'] > 20  :
-            return "High"
-        elif row['Discount'] > 10 and (row['Units Sold'] >= 10 and row['Units Sold'] <= 20):
-            return "Med"
-        elif row['Units Sold'] >= 50:
-            return "High"
-        elif row['Units Sold'] > 20 and row['Units Sold'] <50:
-            return "Med"
-        else:
-            return "Low"
-
-
-
-            
-def split_train_data(data):
-
-    #Data Splitting
-    
-    x = data.drop(columns=['Demand'])
-    y = data['Demand']
-
-    x_train , x_test , y_train , y_test = train_test_split(x , y , test_size = 0.8 ,random_state=42)
-
-    #Initialize Decision Tree Regression
-
-    Dec_Reg = DecisionTreeRegressor(random_state = 42)
-
-    #Train the model
-
-    Dec_Reg.fit(x_train , y_train)
-
-    #Dump into pickle file
-
-    pickle.dump(Dec_Reg ,open('Content.pkl' , 'wb'))
-    model = pickle.load(open('Content.pkl','rb'))
-
-    #Predict on Test
-
-    y_pred = model.predict(x_test)
-
-    #Metrics
-
-    mse = mean_squared_error(y_test , y_pred)
-    r2 = r2_score(y_test , y_pred)
-
-    print(f"Mean Squared Error : {mse}")
-    print(f"R^2 Error : {r2}")
-
-    tree.plot_tree(model , filled=True , rounded=True )
-    plt.show()
-
-    return model
-
-    
-
-def input_features():
-     
-    #User Input
-    base_price = float(input("Enter Base Price: "))
-    total_price = float(input("Enter Total Price: "))
-    units_sold = int(input("Enter Units Sold: "))
+# Calculate R^2 score on test data
+r2 = r2_score(ytest, ypred)
+print("R^2 Score on test data (Decision Tree):", r2)
 
 
-    
-    discount = base_price - total_price
-    discount_percentage = 100 * discount / base_price
-    
-    return pd.DataFrame({
-        'ID' : [0],
-        'Store ID': [0] ,
-        'Total Price': [total_price],
-        'Base Price': [base_price],
-        'Units Sold': [units_sold],
-        'Discount': [np.round(discount, 2)],
-        'Discount percentage': [np.round(discount_percentage, 2)] 
-       
-        })
-
-
-if __name__ == "__main__":
-    data = load_process_data()
-    model = split_train_data(data)
-    
-    new_data = input_features()
-    prediction = model.predict(new_data)
-    
-    # Print the prediction
-    if prediction == 2:
-        print("Demand for the product is High")
-    elif prediction == 1:
-        print("Demand for the Product is Average")
-    else:
-        print("Demand for the product is Low")
-
-    # Visualize the tree
-    plt.figure(figsize=(20, 10))
-    tree.plot_tree(model, feature_names=data.drop(columns=['Demand']).columns, filled=True, fontsize=10)
-    plt.show()
