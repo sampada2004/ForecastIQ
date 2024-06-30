@@ -1,8 +1,16 @@
-import pandas as pd
+
+import pandas as pd 
 import numpy as np
+import matplotlib.pyplot as plt
+
+
+import seaborn as sns
+import plotly.express as px
+
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.tree import DecisionTreeRegressor
+from sklearn.tree import DecisionTreeRegressor, plot_tree
 from sklearn.metrics import r2_score
+
 from flask import Flask, request, jsonify, render_template
 
 app = Flask(__name__)
